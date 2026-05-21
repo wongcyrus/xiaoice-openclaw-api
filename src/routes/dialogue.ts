@@ -159,16 +159,49 @@ dialogueRouter.post("/talk", requireXiaoiceAuth, async (req: Request, res: Respo
 
 /**
  * POST /api/welcome
- * Returns the localized welcome message
+ * Returns the localized welcome message, queried dynamically from OpenClaw
  */
-dialogueRouter.post("/welcome", requireXiaoiceAuth, (req: Request, res: Response) => {
+dialogueRouter.post("/welcome", requireXiaoiceAuth, async (req: Request, res: Response) => {
   const { sessionId, traceId, languageCode } = req.body;
   const isEn = languageCode?.toLowerCase().startsWith("en");
 
-  const replyText = isEn 
+  const agentId = config.defaultAgentId || "main";
+  const sessionConfig = getSessionConfig();
+  const targetSession = sessionConfig.mode === "dynamic" ? sessionId : (sessionConfig.fixedSessionKey || "main");
+  const sessionKey = `agent:${agentId}:${targetSession}`;
+
+  const fallbackText = isEn 
     ? "Hello! I am HKIIT Assistant. How can I help you today?" 
     : "你好！我是智能助手。很高兴为你服务！[huishou]";
 
+  const prompt = isEn
+    ? "Hello! Please give me a warm, very brief welcome greeting."
+    : "你好！请给我说一句热情的欢迎词，字数简短。";
+
+  let accumulatedText = "";
+
+  try {
+    console.log(`[welcome] Asking OpenClaw for dynamic welcome using sessionKey: ${sessionKey}`);
+    await openClaw.connect();
+    await openClaw.sendChat(sessionKey, prompt, (chunkPayload) => {
+      let rawText = "";
+      if (typeof chunkPayload.deltaText === "string") {
+        rawText = chunkPayload.deltaText;
+      } else if (typeof chunkPayload.delta === "string") {
+        rawText = chunkPayload.delta;
+      } else if (typeof chunkPayload.message?.text === "string") {
+        rawText = chunkPayload.message.text;
+      }
+
+      if (rawText) {
+        accumulatedText += rawText;
+      }
+    });
+  } catch (err) {
+    console.error("[welcome] Failed to ask OpenClaw for welcome message. Falling back to default:", err);
+  }
+
+  const replyText = accumulatedText.trim() || fallbackText;
   const { cleanedText, postures } = extractPostures(replyText);
 
   // Print WELCOME LOG to console
@@ -196,16 +229,49 @@ dialogueRouter.post("/welcome", requireXiaoiceAuth, (req: Request, res: Response
 
 /**
  * POST /api/goodbye
- * Returns conclusion phrase
+ * Returns conclusion phrase, queried dynamically from OpenClaw
  */
-dialogueRouter.post("/goodbye", requireXiaoiceAuth, (req: Request, res: Response) => {
+dialogueRouter.post("/goodbye", requireXiaoiceAuth, async (req: Request, res: Response) => {
   const { sessionId, traceId, languageCode } = req.body;
   const isEn = languageCode?.toLowerCase().startsWith("en");
 
-  const replyText = isEn 
+  const agentId = config.defaultAgentId || "main";
+  const sessionConfig = getSessionConfig();
+  const targetSession = sessionConfig.mode === "dynamic" ? sessionId : (sessionConfig.fixedSessionKey || "main");
+  const sessionKey = `agent:${agentId}:${targetSession}`;
+
+  const fallbackText = isEn 
     ? "Goodbye! Have a great day!" 
     : "再见！期待下次与你相遇！[huishou]";
 
+  const prompt = isEn
+    ? "Goodbye! Give me a brief warm farewell."
+    : "再见！说一句热情的道别词，字数简短。";
+
+  let accumulatedText = "";
+
+  try {
+    console.log(`[goodbye] Asking OpenClaw for dynamic farewell using sessionKey: ${sessionKey}`);
+    await openClaw.connect();
+    await openClaw.sendChat(sessionKey, prompt, (chunkPayload) => {
+      let rawText = "";
+      if (typeof chunkPayload.deltaText === "string") {
+        rawText = chunkPayload.deltaText;
+      } else if (typeof chunkPayload.delta === "string") {
+        rawText = chunkPayload.delta;
+      } else if (typeof chunkPayload.message?.text === "string") {
+        rawText = chunkPayload.message.text;
+      }
+
+      if (rawText) {
+        accumulatedText += rawText;
+      }
+    });
+  } catch (err) {
+    console.error("[goodbye] Failed to ask OpenClaw for goodbye message. Falling back to default:", err);
+  }
+
+  const replyText = accumulatedText.trim() || fallbackText;
   const { cleanedText, postures } = extractPostures(replyText);
 
   // Print GOODBYE LOG to console

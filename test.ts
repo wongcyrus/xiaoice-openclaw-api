@@ -145,6 +145,28 @@ async function runTests() {
     console.log("------------------------------------------------------------------");
     console.log("✅ Talk streaming completed successfully!");
 
+    // Test 3.5: Verify /goodbye endpoint
+    console.log("\n➡️  Test 3.5: Testing /goodbye endpoint...");
+    const goodbyeBody = {
+      sessionId: "test-session-123",
+      traceId: "test-trace-goodbye",
+      languageCode: "zh"
+    };
+
+    const goodbyeRes = await fetch(`${BASE_URL}/goodbye`, {
+      method: "POST",
+      headers: getAuthHeaders(goodbyeBody),
+      body: JSON.stringify(goodbyeBody)
+    });
+
+    if (!goodbyeRes.ok) {
+      throw new Error(`Goodbye endpoint failed: ${goodbyeRes.status} ${goodbyeRes.statusText}`);
+    }
+
+    const goodbyeData = await goodbyeRes.json();
+    console.log("✅ Goodbye endpoint returned successfully:");
+    console.log(JSON.stringify(goodbyeData, null, 2));
+
     console.log("\n==================================================================");
     console.log("🎉 All integration tests passed successfully!");
     console.log("==================================================================");
