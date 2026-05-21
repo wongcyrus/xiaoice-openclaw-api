@@ -16,6 +16,33 @@ app.use(express.json({
   }
 }));
 
+// 2.5. Custom API Request Debugging Logger
+app.use((req, res, next) => {
+  const start = Date.now();
+  const reqId = Math.random().toString(36).substring(2, 8).toUpperCase();
+  
+  console.log(`\n📥 [Incoming Request] [ID: ${reqId}] ${req.method} ${req.originalUrl}`);
+  console.log(`🔑 Auth Headers:`, {
+    "x-key": req.headers["x-key"] || "(Missing)",
+    "x-timestamp": req.headers["x-timestamp"] || "(Missing)",
+    "x-sign": req.headers["x-sign"] || "(Missing)",
+    "content-type": req.headers["content-type"]
+  });
+  if (req.body && Object.keys(req.body).length > 0) {
+    console.log(`📦 Body:`, JSON.stringify(req.body, null, 2));
+  } else {
+    console.log(`📦 Body: (Empty)`);
+  }
+
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    console.log(`📤 [Outgoing Response] [ID: ${reqId}] Status: ${res.statusCode} (${duration}ms)`);
+    console.log(`-------------------------------------------`);
+  });
+
+  next();
+});
+
 // 3. Register dialogue API endpoints under /api prefix
 app.use("/api", dialogueRouter);
 

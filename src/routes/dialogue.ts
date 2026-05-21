@@ -63,6 +63,7 @@ dialogueRouter.post("/talk", requireXiaoiceAuth, async (req: Request, res: Respo
   console.log(`[talk] Session: ${sessionId}, Trace: ${traceId}, Agent ID: ${agentId}, sessionKey: ${sessionKey}`);
 
   let chunkCount = 0;
+  let fullBotReply = "";
 
   try {
     // Connect to OpenClaw (resolves instantly if already connected)
@@ -84,6 +85,7 @@ dialogueRouter.post("/talk", requireXiaoiceAuth, async (req: Request, res: Respo
 
       // Extract postures if any (e.g. [huishou] -> digital human gesture waving)
       const { cleanedText, postures } = extractPostures(rawText);
+      fullBotReply += cleanedText;
 
       chunkCount++;
       const chunk = {
@@ -122,6 +124,12 @@ dialogueRouter.post("/talk", requireXiaoiceAuth, async (req: Request, res: Respo
     res.write(`data: ${JSON.stringify(finalChunk)}\n\n`);
     res.end();
 
+    // Print gorgeous CHAT LOG to terminal/Docker stdout
+    console.log(`\n💬 [CHAT LOG]`);
+    console.log(`👤 User: "${askText}"`);
+    console.log(`🤖 Bot : "${fullBotReply}"`);
+    console.log(`-------------------------------------------\n`);
+
   } catch (err: any) {
     console.error("[talk] Error during streaming:", err);
     
@@ -157,6 +165,12 @@ dialogueRouter.post("/welcome", requireXiaoiceAuth, (req: Request, res: Response
 
   const { cleanedText, postures } = extractPostures(replyText);
 
+  // Print WELCOME LOG to console
+  console.log(`\n👋 [WELCOME LOG]`);
+  console.log(`Session: ${sessionId || "welcome_session"}`);
+  console.log(`🤖 Bot : "${cleanedText}"`);
+  console.log(`-------------------------------------------\n`);
+
   res.json({
     askText: "",
     extra: {},
@@ -187,6 +201,12 @@ dialogueRouter.post("/goodbye", requireXiaoiceAuth, (req: Request, res: Response
     : "再见！期待下次与你相遇！[huishou]";
 
   const { cleanedText, postures } = extractPostures(replyText);
+
+  // Print GOODBYE LOG to console
+  console.log(`\n👋 [GOODBYE LOG]`);
+  console.log(`Session: ${sessionId || "goodbye_session"}`);
+  console.log(`🤖 Bot : "${cleanedText}"`);
+  console.log(`-------------------------------------------\n`);
 
   res.json({
     askText: "",
