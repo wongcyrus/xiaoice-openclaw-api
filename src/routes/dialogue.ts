@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { requireXiaoiceAuth } from "../utils/auth.js";
 import { OpenClawClient } from "../gateway/OpenClawClient.js";
 import { config } from "../config.js";
+import { getSessionConfig } from "../utils/session-config.js";
 
 export const dialogueRouter = Router();
 
@@ -56,11 +57,16 @@ dialogueRouter.post("/talk", requireXiaoiceAuth, async (req: Request, res: Respo
   res.setHeader("Connection", "keep-alive");
   res.setHeader("X-Accel-Buffering", "no"); // Prevent Nginx buffering
 
-  // Resolve which OpenClaw agent to talk to
-  const agentId = userParams || config.defaultAgentId;
-  const sessionKey = `agent:${agentId}:main`;
+  // Resolve which OpenClaw agent to talk to (Strictly using fixed defaultAgentId from config / .env)
+  const agentId = config.defaultAgentId || "main";
 
-  console.log(`[talk] Session: ${sessionId}, Trace: ${traceId}, Agent ID: ${agentId}, sessionKey: ${sessionKey}`);
+  // Resolve session key behavior based on configuration page settings
+  const sessionConfig = getSessionConfig();
+  const targetSession = sessionConfig.mode === "dynamic" ? sessionId : (sessionConfig.fixedSessionKey || "main");
+  const sessionKey = `agent:${agentId}:${targetSession}`;
+
+  console.log(`[talk] SessionConfig: mode=${sessionConfig.mode}, fixedKey=${sessionConfig.fixedSessionKey}`);
+  console.log(`[talk] Session: ${sessionId}, TargetSession: ${targetSession}, Trace: ${traceId}, Agent ID: ${agentId}, sessionKey: ${sessionKey}`);
 
   let chunkCount = 0;
   let fullBotReply = "";

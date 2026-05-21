@@ -1,10 +1,16 @@
 import express from "express";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 import { config } from "./config.js";
 import { dialogueRouter } from "./routes/dialogue.js";
+import { getSessionConfig, saveSessionConfig } from "./utils/session-config.js";
 
 const app = express();
 const port = config.port;
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // 1. Enable Cross-Origin Resource Sharing (CORS)
 app.use(cors());
@@ -42,6 +48,21 @@ app.use((req, res, next) => {
 
   next();
 });
+
+// 2.6. Session Config endpoints
+app.get("/api/config", (req, res) => {
+  res.json(getSessionConfig());
+});
+
+app.post("/api/config", (req, res) => {
+  const updated = saveSessionConfig(req.body);
+  res.json({ ok: true, config: updated });
+});
+
+// Serve the static web configure page on root /
+// Support both local tsx runner and compiled dist paths
+app.use(express.static(path.resolve(__dirname, "./public")));
+app.use(express.static(path.resolve(__dirname, "../src/public")));
 
 // 3. Register dialogue API endpoints under /api prefix
 app.use("/api", dialogueRouter);

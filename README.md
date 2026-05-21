@@ -4,14 +4,25 @@ A standalone, production-ready Express API bridge that connects any **Xiaoice Di
 
 The bridge intercepts, validates, and translates standard Xiaoice request signatures, opens a secure Ed25519-signed websocket stream with OpenClaw, parses postural gesture cues, and translates dialogue text into seamless, chunk-by-chunk Server-Sent Events (SSE) streams.
 
+- 🔌 **High-Visibility Diagnostic Logs**: Captures real-time connection telemetry and maps clean, visual `[CHAT LOG]` cards to the terminal to trace dialogue without digging through raw network frames.
+- ⚙️ **Dual-Mode Session Routing**: Toggle between Dynamic and Fixed session styles to control multi-turn history mapping.
+- 🎨 **Sleek Web Configure Page**: Built-in glassmorphic dark-theme dashboard served at `/` to let operators switch routing modes dynamically with real-time feedback.
+
 ---
 
-## ✨ Features
+## ⚙️ Web Configure Page & Session Modes
 
-- 🔑 **Xiaoice Signature V2 Validation**: Enforces full cryptographic verification (SHA-512 over sorted keys) with 5-minute replay window validation to secure all incoming traffic.
-- 🎭 **Silent Local Auto-Pairing**: Employs a dynamically generated **Ed25519** identity on boot and registers as a standard `"gateway-client"` backend to skip manual approval and connect instantly.
-- 🏃‍♂️ **Postural Gesture Extraction**: Scans replies for brackets containing digital human skeletal animation commands (e.g. `[huishou]`) and converts them into the compliant `replyPayload.postureList` JSON array.
-- 📡 **Full API Surface**: Fully supports `/api/talk` (streaming SSE), `/api/welcome` (welcome cue), `/api/goodbye` (session close), and `/api/recquestions` (dynamic recommendations).
+You can manage session state routing dynamically by visiting the built-in configuration dashboard at:
+`http://<host-ip>:3002/`
+
+The bridge supports two premium conversation routing modes:
+
+1. 🔒 **Fixed Session Mode (Default)**:
+   Forces all incoming requests into a single, unified conversation thread (default key is `"main"`). Ideal for dedicated single-user bots or digital human exhibits where context is shared.
+2. 🌐 **Dynamic ID Mode**:
+   Extracts the client's incoming `sessionId` directly and maps it to its own isolated, parallel context thread in OpenClaw. This guarantees 100% data privacy and history separation for concurrent multi-user chats.
+
+All selections are persisted immediately to **`session_config.json`** and survive container updates and reboots.
 
 ---
 

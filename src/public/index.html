@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xiaoice-OpenClaw Bridge Configuration</title>
+  <!-- Modern Premium Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-gradient: radial-gradient(circle at 50% 50%, #121424 0%, #07080f 100%);
+      --accent-color: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.4);
+      --success-color: #10b981;
+      --success-glow: rgba(16, 185, 129, 0.4);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-glass: rgba(255, 255, 255, 0.08);
+      --card-glass: rgba(15, 17, 30, 0.7);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Ambient Background Glows */
+    .glow-sphere {
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      background: var(--accent-glow);
+      filter: blur(120px);
+      border-radius: 50%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .glow-sphere-top {
+      top: -10%;
+      right: -10%;
+    }
+
+    .glow-sphere-bottom {
+      bottom: -10%;
+      left: -10%;
+      background: rgba(16, 185, 129, 0.15);
+    }
+
+    /* Main Glassmorphic Container */
+    .container {
+      background: var(--card-glass);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border: 1px solid var(--border-glass);
+      width: 100%;
+      max-width: 580px;
+      border-radius: 24px;
+      padding: 40px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 
+                  inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      z-index: 10;
+      position: relative;
+      animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Header Styling */
+    .header {
+      text-align: center;
+      margin-bottom: 35px;
+    }
+
+    .logo-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .icon-bridge {
+      font-size: 32px;
+      animation: pulse 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px var(--accent-glow)); }
+      50% { transform: scale(1.08); filter: drop-shadow(0 0 15px var(--accent-color)); }
+    }
+
+    .title {
+      font-size: 26px;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #f8fafc 30%, #a5b4fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+      font-weight: 300;
+      margin-top: 6px;
+    }
+
+    /* Mode Selection Area */
+    .modes-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+
+    .mode-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-glass);
+      border-radius: 16px;
+      padding: 24px 20px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .mode-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, transparent 100%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .mode-card:hover {
+      background: rgba(255, 255, 255, 0.04);
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .mode-card.selected {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 25px var(--accent-glow), inset 0 0 8px rgba(99, 102, 241, 0.15);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    .mode-card.selected::before {
+      opacity: 1;
+    }
+
+    .mode-icon {
+      font-size: 28px;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .mode-name {
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+
+    .mode-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.4;
+      font-weight: 300;
+    }
+
+    /* Form Fields */
+    .field-group {
+      background: rgba(0, 0, 0, 0.15);
+      border: 1px solid var(--border-glass);
+      border-radius: 16px;
+      padding: 20px 24px;
+      margin-bottom: 30px;
+      transition: all 0.4s ease;
+    }
+
+    .field-group.disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .label-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .field-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .field-badge {
+      background: var(--accent-color);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .input-field {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-glass);
+      border-radius: 10px;
+      padding: 14px 16px;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 400;
+      outline: none;
+      transition: all 0.3s;
+    }
+
+    .input-field:focus {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: var(--accent-color);
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
+    }
+
+    /* Action Buttons */
+    .btn-save {
+      width: 100%;
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 4px 20px rgba(79, 70, 229, 0.4);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-save:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 30px rgba(79, 70, 229, 0.6);
+      background: linear-gradient(135deg, #6d70f9 0%, #574df0 100%);
+    }
+
+    .btn-save:active {
+      transform: translateY(1px);
+    }
+
+    /* Glowing Custom Notifications */
+    .notification {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid var(--success-color);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      box-shadow: 0 0 15px var(--success-glow);
+      opacity: 0;
+      transform: scale(0.95);
+      pointer-events: none;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: absolute;
+      top: -80px;
+      left: 0;
+      right: 0;
+    }
+
+    .notification.show {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+      pointer-events: auto;
+      top: -95px;
+    }
+
+    .notif-icon {
+      font-size: 20px;
+      color: var(--success-color);
+    }
+
+    .notif-text {
+      font-size: 14px;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient BG Graphics -->
+  <div class="glow-sphere glow-sphere-top"></div>
+  <div class="glow-sphere glow-sphere-bottom"></div>
+
+  <!-- Main Config Dashboard -->
+  <div class="container">
+    
+    <!-- Success Alert (Animates from Top) -->
+    <div id="save-alert" class="notification">
+      <span class="notif-icon">✓</span>
+      <span class="notif-text">Session configuration saved and updated successfully!</span>
+    </div>
+
+    <!-- Header Section -->
+    <div class="header">
+      <div class="logo-container">
+        <span class="icon-bridge">🔌</span>
+        <h1 class="title">Session Routing</h1>
+      </div>
+      <p class="subtitle">Select how the Xiaoice API Bridge routes conversation threads to OpenClaw</p>
+    </div>
+
+    <!-- Interactive Selection Cards -->
+    <div class="modes-container">
+      <!-- Mode 2: Fixed Session (Default) -->
+      <div id="card-fixed" class="mode-card selected" onclick="selectMode('fixed')">
+        <span class="mode-icon">🔒</span>
+        <h3 class="mode-name">Fixed Session</h3>
+        <p class="mode-desc">Forces all incoming requests into a single unified context (ideal for single-user bots)</p>
+      </div>
+
+      <!-- Mode 1: Dynamic Session ID -->
+      <div id="card-dynamic" class="mode-card" onclick="selectMode('dynamic')">
+        <span class="mode-icon">🌐</span>
+        <h3 class="mode-name">Dynamic ID</h3>
+        <p class="mode-desc">Maps each incoming session ID to its own isolated, parallel context thread</p>
+      </div>
+    </div>
+
+    <!-- Form Controls -->
+    <div id="fixed-group" class="field-group">
+      <div class="label-container">
+        <label class="field-label">
+          <span>Fixed Session Key</span>
+        </label>
+        <span class="field-badge">Default: main</span>
+      </div>
+      <div class="input-wrapper">
+        <input type="text" id="session-key-input" class="input-field" placeholder="e.g. main" value="main">
+      </div>
+    </div>
+
+    <!-- Action Action Button -->
+    <button class="btn-save" onclick="saveConfiguration()">
+      <span>💾</span>
+      <span>Apply & Update Config</span>
+    </button>
+
+  </div>
+
+  <!-- Interactive Logic Script -->
+  <script>
+    let activeMode = 'fixed';
+
+    // Fetch existing configuration from server on boot
+    async function loadConfig() {
+      try {
+        const response = await fetch('/api/config');
+        if (response.ok) {
+          const config = await response.json();
+          selectMode(config.mode);
+          document.getElementById('session-key-input').value = config.fixedSessionKey || 'main';
+        }
+      } catch (err) {
+        console.error('Failed to load session configuration from server:', err);
+      }
+    }
+
+    // Toggle UI States
+    function selectMode(mode) {
+      activeMode = mode;
+      
+      const cardFixed = document.getElementById('card-fixed');
+      const cardDynamic = document.getElementById('card-dynamic');
+      const fixedGroup = document.getElementById('fixed-group');
+
+      if (mode === 'fixed') {
+        cardFixed.classList.add('selected');
+        cardDynamic.classList.remove('selected');
+        fixedGroup.classList.remove('disabled');
+      } else {
+        cardDynamic.classList.add('selected');
+        cardFixed.classList.remove('selected');
+        fixedGroup.classList.add('disabled');
+      }
+    }
+
+    // Submit Configuration Updates via Ajax
+    async function saveConfiguration() {
+      const fixedSessionKey = document.getElementById('session-key-input').value.trim() || 'main';
+      
+      const payload = {
+        mode: activeMode,
+        fixedSessionKey: fixedSessionKey
+      };
+
+      try {
+        const response = await fetch('/api/config', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+          // Success Feedback Animation
+          const alert = document.getElementById('save-alert');
+          alert.classList.add('show');
+          
+          setTimeout(() => {
+            alert.classList.remove('show');
+          }, 3500);
+        } else {
+          alert('Failed to save configuration. Please try again.');
+        }
+      } catch (err) {
+        console.error('Error saving configuration:', err);
+        alert('Network error while saving configuration.');
+      }
+    }
+
+    // Initialize Page
+    loadConfig();
+  </script>
+</body>
+</html>

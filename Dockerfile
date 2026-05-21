@@ -33,6 +33,9 @@ RUN npm ci --omit=dev
 # Copy compiled JavaScript files
 COPY --from=builder /app/dist ./dist
 
+# Copy static frontend public assets
+COPY src/public/ ./src/public/
+
 # Expose API Bridge Port
 EXPOSE 3002
 
