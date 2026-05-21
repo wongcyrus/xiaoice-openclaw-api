@@ -1,0 +1,23 @@
+services:
+  xiaoice-openclaw-bridge:
+    build: .
+    container_name: xiaoice-openclaw-bridge
+    ports:
+      - "3002:3002"
+    environment:
+      - PORT=${PORT:-3002}
+      - XIAOICE_ACCESS_KEY=${XIAOICE_ACCESS_KEY:-test_access_key}
+      - XIAOICE_SECRET_KEY=${XIAOICE_SECRET_KEY:-test_secret_key}
+      
+      # ⚠️ IMPORTANT: When connecting to OpenClaw gateway running on the host machine from within
+      # a Docker container, 'localhost' points to the container itself. Use 'host.docker.internal'
+      # below, which is mapped to the host's actual IP gateway.
+      - OPENCLAW_WS_URL=${OPENCLAW_WS_URL:-ws://host.docker.internal:18789}
+      - OPENCLAW_TOKEN=${OPENCLAW_TOKEN}
+      - OPENCLAW_AGENT_ID=${OPENCLAW_AGENT_ID:-main}
+    
+    # Resolves 'host.docker.internal' to the host machine gateway IP on Linux
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    
+    restart: unless-stopped
